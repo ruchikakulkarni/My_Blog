@@ -1,0 +1,58 @@
+---
+title: "my-name-is-blah"
+author: "ruchika"
+---
+
+## Introduction
+
+zippy zappy zig zag
+
+## First piece of R Code
+
+```{r}
+#| label: setup
+library(tidyverse)
+library(ggformula)
+library(babynames)
+```
+
+```{r}
+babynames
+```
+
+```{r}
+babynames %>% filter(name == "Ruchika")
+```
+
+```{r}
+babynames %>% filter(name=="Ruchika") %>% 
+  gf_line(n ~ year)
+```
+
+## I'm unique bruh
+
+```{r}
+babynames %>% filter(name == "Dhwani" | name == "Dhvani")
+```
+
+## *heading*
+
+```{r}
+babynames %>% dplyr::glimpse()
+```
+
+```{r}
+glimpse(babynames)
+```
+
+```{r}
+inspect(babynames)
+```
+
+```{r}
+babynames_modified <- babynames %>%
+  dplyr::mutate(
+    sex = as_factor(sex),
+  )
+glimpse(babynames_modified)
+```

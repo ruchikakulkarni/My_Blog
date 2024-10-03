@@ -1,0 +1,120 @@
+---
+title: "Class3"
+author: "ruchika"
+format: html
+editor: visual
+---
+
+```{r}
+#| label : setup
+
+library(tidyverse)
+library(mosaic)
+library(ggformula)
+library(skimr)
+```
+
+```{r}
+taxi <- read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/modeldata/taxi.csv")
+taxi
+```
+
+```{r}
+## Convert `dow`, `local`, and `month` into ordered factors
+taxi_modified <- taxi %>%
+  mutate(
+    dow = factor(dow,
+      levels = c("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"),
+      labels = c("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"),
+      ordered = TRUE
+    ),
+    ##
+    local = factor(local,
+      levels = c("no", "yes"),
+      labels = c("no", "yes"),
+      ordered = TRUE
+    ),
+    ##
+    month = factor(month,
+      levels = c("Jan", "Feb", "Mar", "Apr"),
+      labels = c("Jan", "Feb", "Mar", "Apr"),
+      ordered = TRUE
+    )
+  )
+taxi_modified %>% glimpse()
+```
+
+```{r}
+
+##
+taxi_modified %>%
+  gf_bar(~tip,
+    fill = ~local,
+    position = "dodge"
+  ) %>%
+  gf_labs(title = "Plot 2A: Dodged Bar Chart")
+```
+
+```{r}
+
+##
+taxi_modified %>%
+  gf_bar(~local,
+    fill = ~tip,
+    position = "fill"
+  ) %>%
+  gf_labs(
+    title = "Plot 2B: Stacked Bar Chart",
+    subtitle = "Can we spot per group differences in proportions??"
+  )
+```
+
+```{r}
+
+##
+taxi_modified %>%
+  gf_bar(~company,
+    fill = ~tip,
+    position = "fill"
+  ) %>%
+  gf_labs(title = "Plot 2A: Dodged Bar Chart") %>%
+  gf_theme(theme(axis.text.x = element_text(size = 6, angle = 45, hjust = 1)))
+```
+
+```{r}
+## Set graph theme
+# theme_set(new = theme_custom())
+##
+gf_bar(~hour, fill = ~tip, data = taxi_modified, position = "fill" ) %>%
+  gf_labs(title = "Plot B: Counts of Tips by Hour")
+```
+
+```{r}
+##
+gf_bar(~dow, fill = ~tip, position ="fill", data = taxi_modified) %>%
+  gf_labs(title = "Plot C: Counts of Tips by Day of Week")
+```
+
+```{r}
+##
+gf_bar(~month, fill = ~tip,position ="fill", data = taxi_modified) %>%
+  gf_labs(title = "Plot D: Counts of Tips by Month")
+```
+
+```{r}
+##
+gf_bar(~ month | dow, fill = ~tip, data = taxi_modified, position ="fill") %>%
+  gf_labs(title = "Plot E: Counts of Tips by Day of Week and Month")
+```
+
+```{r}
+##
+## This may be too busy a graph...
+gf_bar(~ dow , fill = ~tip, data = taxi_modified, position = "fill") %>%
+  gf_labs(
+    title = "Plot F: Counts of Tips by Hour and Day of Week",
+    subtitle = "Is this plot arrangement easy to grasp?"
+  )
+```
+
+## Substance

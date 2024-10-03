@@ -1,0 +1,127 @@
+---
+title: "summary-class-2"
+author: "ruchika"
+---
+
+## Summarizing Data
+
+#### DAY - 2
+
+```{r}
+#| label: setup
+library(tidyverse)
+library(mosaic)
+library(ggformula)
+library(kableExtra)
+```
+
+```{r}
+mpg
+```
+
+```{r}
+mpg %>% 
+  head(10)
+```
+
+```{r}
+mpg %>% skimr::skim
+```
+
+```{r}
+glimpse(mpg)
+```
+
+```{r}
+mpg_modified <- mpg %>%
+  dplyr::mutate(
+    cyl = as_factor(cyl),
+    fl = as_factor(fl),
+    drv = as_factor(drv),
+    class = as_factor(class),
+    trans = as_factor(trans)
+  )
+glimpse(mpg_modified)
+```
+
+```{r}
+mpg_modified %>% dplyr::count(cyl)
+```
+
+```{r}
+mpg_modified %>%
+  group_by(cyl, fl) %>%
+  summarize(average_hwy = mean(hwy), count = n())
+```
+
+```{r}
+mpg_modified %>% 
+group_by(manufacturer) %>% 
+  summarize(average_cty = mean(cty), count = n())
+```
+
+```{r}
+math_anxiety <- read_csv("../../data/MathAnxiety.csv")
+math_anxiety
+```
+
+```{r}
+math_anxiety <- read_delim(file = "../../data/MathAnxiety.csv", delim = ";")
+math_anxiety
+```
+
+```{r}
+math_anxiety %>% dplyr::glimpse()
+```
+
+```{r}
+mpg %>% mosaic::inspect()
+
+```
+
+```{r}
+math_anxiety_modified <- math_anxiety %>%
+  dplyr::mutate(
+    Age = as.integer(Age / 120),
+    Gender = as_factor(Gender),
+    Grade = as_factor(Grade)
+  )
+glimpse(math_anxiety_modified)
+```
+
+```{r}
+math_anxiety_modified %>% 
+  group_by(Gender) %>% 
+  summarize(average_anxiety = mean(RCMAS), count = n())
+```
+
+```{r}
+math_anxiety_modified %>% 
+  group_by(Gender) %>% 
+  summarize(average_anxiety = mean(Arith), count = n())
+```
+
+```{r}
+math_anxiety_modified %>% 
+  group_by(Gender) %>% 
+  summarize(average_anxiety = mean(AMAS), count = n())
+```
+
+```{r}
+math_anxiety_modified %>% 
+  group_by(Gender, Grade) %>% 
+  summarize(average_anxiety = mean(AMAS), count = n())
+```
+
+```{r}
+math_anxiety_modified %>% 
+  group_by(Gender) %>% 
+  summarize(average_anxiety = mean(RCMAS), mean(AMAS) count = n())
+```
+
+```{r}
+math_anxiety_modified %>% 
+  group_by(Gender) %>% 
+  summarize(average_anxietyrcmas = mean(RCMAS),average_anxietyamas = mean(AMAS), count = n())
+
+```
