@@ -14,10 +14,14 @@ library(ggformula)
 library(skimr)
 ```
 
+#gg(grammar of graphics), viridis - colours that we get from the gg package
+
 ```{r}
 taxi <- read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/modeldata/taxi.csv")
 taxi
 ```
+
+#Data munging - mutating, ordered - is basically putting the data according to the specific order instead of alphabetical order.
 
 ```{r}
 ## Convert `dow`, `local`, and `month` into ordered factors
@@ -44,6 +48,8 @@ taxi_modified <- taxi %>%
 taxi_modified %>% glimpse()
 ```
 
+#So the tip is on the x-axis, count on y-axis which I don't need to take care of since it's plotted by gf_bar, and colour is local. From this data, one could say that non-local trips are tipped the most. Hypothesis could be - maybe local trips are very short distance, thus passengers don't feel the need to tip OR non-local tip the most because they come to that area as a tourist and are having a fun time thus tip better.
+
 ```{r}
 
 ##
@@ -54,6 +60,8 @@ taxi_modified %>%
   ) %>%
   gf_labs(title = "Plot 2A: Dodged Bar Chart")
 ```
+
+\# 3 Types of Positions - fill (becomes 100% and is proportionally based), stack (one over another), dodge (side by side)
 
 ```{r}
 
@@ -69,6 +77,8 @@ taxi_modified %>%
   )
 ```
 
+#hjust is horizontal justification, basically position of the text written on x-axis, angle of the same.
+
 ```{r}
 
 ##
@@ -81,6 +91,8 @@ taxi_modified %>%
   gf_theme(theme(axis.text.x = element_text(size = 6, angle = 45, hjust = 1)))
 ```
 
+#Can say tips are given the most at 2/4 am. Hypothesis could be, it's a time that most passengers feel unsafe (can see many aspects women being unsafe, people being unsafe since many accidents occur at this hour) thus after having a normal, safe ride they feel the need to tip more for their.
+
 ```{r}
 ## Set graph theme
 # theme_set(new = theme_custom())
@@ -89,17 +101,23 @@ gf_bar(~hour, fill = ~tip, data = taxi_modified, position = "fill" ) %>%
   gf_labs(title = "Plot B: Counts of Tips by Hour")
 ```
 
+#Sunday is the most tips cause SUNDAY IS FUNDAY.
+
 ```{r}
 ##
 gf_bar(~dow, fill = ~tip, position ="fill", data = taxi_modified) %>%
-  gf_labs(title = "Plot C: Counts of Tips by Day of Week")
+  gf_labs(title = "Plot C: Counts of Tips by Day of Week")#
 ```
+
+#April has the most tips
 
 ```{r}
 ##
 gf_bar(~month, fill = ~tip,position ="fill", data = taxi_modified) %>%
   gf_labs(title = "Plot D: Counts of Tips by Month")
 ```
+
+#Monday,Tue,Wed,Thu of April has most tips.
 
 ```{r}
 ##
@@ -117,4 +135,58 @@ gf_bar(~ dow , fill = ~tip, data = taxi_modified, position = "fill") %>%
   )
 ```
 
-## Substance
+## APARTMENT DATA (Your Turn)
+
+```{r}
+Fertility <- read_csv("../../data/Fertility.csv")
+Fertility
+```
+
+#Turned to factor since they can be categorized, eg - yes/no , male/female
+
+```{r}
+Fertility_modified <- Fertility %>% dplyr::mutate(
+  morekids = as_factor(morekids),
+  gender1 = as_factor(gender1),
+  gender2 = as_factor(gender2),
+  afam = as_factor(afam),
+  hispanic = as_factor(hispanic),
+  other = as_factor(other)
+)
+
+glimpse(Fertility_modified)
+```
+
+#So showcases how male bars are generally taller thus indicating a male-dominant trends in those age groups
+
+```{r}
+##
+Fertility_modified %>%
+  gf_bar(~age,
+    fill = ~gender2,
+    position = "dodge"
+  ) %>%
+  gf_labs(title = "Plot 1:AGE AND GENDER2")
+```
+
+#Showcases how number of hispanic people is lesser than number of hispanic people who want kids whereas it opposite in non-hispanic people.
+
+```{r}
+Fertility_modified %>%
+  gf_bar(~hispanic,
+    fill = ~morekids,
+    position = "dodge"
+  ) %>%
+  gf_labs(title = "Plot 1:AGE AND GENDER2")
+```
+
+#After a certain age, there is a decline in wanting kids (32-35) also there is an initial decline during the age of 20-24
+
+```{r}
+Fertility_modified %>%
+  gf_bar(~age,
+    fill = ~morekids,
+    position = "dodge"
+  ) %>%
+  gf_labs(title = "Plot 1:AGE AND GENDER2")
+```

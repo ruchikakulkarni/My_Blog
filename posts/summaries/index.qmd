@@ -15,9 +15,15 @@ library(ggformula)
 library(kableExtra)
 ```
 
+## MPG DATASET
+
+#gg - allows you to plot, dplyr - glimpse function, name - space - usage (family name) sometimes different packages have same name but different function so better to use n-s-u format, mosiac - categorically spreads the variable in quant n qual.
+
 ```{r}
 mpg
 ```
+
+#%\>% is and then, head(10) basically gives the first 10 lines of the dataset.
 
 ```{r}
 mpg %>% 
@@ -28,9 +34,21 @@ mpg %>%
 mpg %>% skimr::skim
 ```
 
+#syntax - glimpse(mpg) OR mpg %\>% glimpse both work the same.
+
 ```{r}
 glimpse(mpg)
 ```
+
+#data munging, basically when you want to change your data into something else you use mutate which is part of data munging (cleaning)
+
+#Ordinal variable is called factor (fct).
+
+#mpg_modified (saving the file as modified so that the earlier file doesn't get contaminated) = mpg and then mutate.
+
+\# converting data of cylinder, fuel type, drive type (only 3), class, trans into ordinal i.e factor, since they are categories.
+
+#factors are basically categories, for eg genders, since they can be categorized into 2 sections so its a factor.
 
 ```{r}
 mpg_modified <- mpg %>%
@@ -60,10 +78,16 @@ group_by(manufacturer) %>%
   summarize(average_cty = mean(cty), count = n())
 ```
 
+## MATH ANXIETY DATASET
+
+#../../ this basically tells the file path used.
+
 ```{r}
 math_anxiety <- read_csv("../../data/MathAnxiety.csv")
 math_anxiety
 ```
+
+#delim tells the character to separate values like changing (;) to (,)
 
 ```{r}
 math_anxiety <- read_delim(file = "../../data/MathAnxiety.csv", delim = ";")
@@ -75,9 +99,11 @@ math_anxiety %>% dplyr::glimpse()
 ```
 
 ```{r}
-mpg %>% mosaic::inspect()
+math_anxiety %>% mosaic::inspect()
 
 ```
+
+#turning gender & grade into factor since they can be categorized, age is shown as 1378, which in the dataset is written as 137,8 which should be 137.8, so its divided by 100 multiplied by 12 so 120.
 
 ```{r}
 math_anxiety_modified <- math_anxiety %>%
@@ -107,17 +133,31 @@ math_anxiety_modified %>%
   summarize(average_anxiety = mean(AMAS), count = n())
 ```
 
+#Trying out 2 groups Gender and Grade
+
 ```{r}
 math_anxiety_modified %>% 
   group_by(Gender, Grade) %>% 
   summarize(average_anxiety = mean(AMAS), count = n())
 ```
 
+#Didn't work
+
 ```{r}
 math_anxiety_modified %>% 
   group_by(Gender) %>% 
   summarize(average_anxiety = mean(RCMAS), mean(AMAS) count = n())
 ```
+
+#Didn't work
+
+```{r}
+math_anxiety_modified %>% 
+  group_by(Gender) %>% 
+  summarize(average_anxiety = mean(RCMAS,AMAS) count = n())
+```
+
+\# WORKEDD - have to specify for each variable.
 
 ```{r}
 math_anxiety_modified %>% 
