@@ -13,6 +13,7 @@ library(tidyverse)
 library(mosaic)
 library(ggformula)
 library(kableExtra)
+library(skimr)
 ```
 
 ## MPG DATASET
@@ -31,7 +32,7 @@ mpg %>%
 ```
 
 ```{r}
-mpg %>% skimr::skim
+skim(mpg)
 ```
 
 #syntax - glimpse(mpg) OR mpg %\>% glimpse both work the same.
@@ -141,21 +142,7 @@ math_anxiety_modified %>%
   summarize(average_anxiety = mean(AMAS), count = n())
 ```
 
-#Didn't work
 
-```{r}
-math_anxiety_modified %>% 
-  group_by(Gender) %>% 
-  summarize(average_anxiety = mean(RCMAS), mean(AMAS) count = n())
-```
-
-#Didn't work
-
-```{r}
-math_anxiety_modified %>% 
-  group_by(Gender) %>% 
-  summarize(average_anxiety = mean(RCMAS,AMAS) count = n())
-```
 
 \# WORKEDD - have to specify for each variable.
 
