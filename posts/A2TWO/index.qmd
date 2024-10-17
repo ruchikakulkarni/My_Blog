@@ -46,7 +46,7 @@ glimpse(job_gender_data)
 
 -   wage_percent_of_male - quant
 
-#### HYPOTHESIS- 
+#### HYPOTHESIS-
 
 -   There is no significant difference in total earnings between male and female workers across all occupations.
 
