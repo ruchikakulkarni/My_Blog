@@ -1,0 +1,153 @@
+---
+title: "change"
+author: "ruchika"
+format: html
+editor: visual
+---
+
+## CHANGE
+
+```{r}
+library(tidyverse) # Tidy data processing and plotting
+library(ggformula) # Formula based plots
+library(mosaic) # Our go-to package
+library(skimr) # Another Data inspection package
+library(kableExtra) # Making good tables with data
+
+library(GGally) # Corr plots
+library(corrplot) # More corrplots
+library(ggExtra) # Making Combination Plots
+library(devtools)
+devtools::install_github("rpruim/Lock5withR")
+library(Lock5withR) # Datasets
+library(palmerpenguins) # A famous dataset
+
+library(easystats) # Easy Statistical Analysis and Charts
+library(correlation) # Different Types of Correlations
+# From the easystats collection of packages
+```
+
+```{r}
+HollywoodMovies2011 -> movies
+glimpse(movies)
+```
+
+```{r}
+movies_quant <- movies %>%
+  drop_na() %>%
+  select(where(is.numeric))
+movies_quant
+```
+
+```{r}
+movies %>%
+  gf_point(Profitability  ~ Budget ) %>%
+  gf_lm() %>%
+  gf_labs(
+    title = "Scatter Plot",
+    subtitle = "Movie Gross Earnings: Domestics vs World"
+  )
+```
+
+```{r}
+
+
+movies %>%
+  drop_na() %>%
+  gf_point(RottenTomatoes ~ AudienceScore,
+    color = ~Genre
+  ) %>%
+  gf_lm() %>%
+  gf_labs(
+    title = "Scatter Plot",
+    subtitle = "Movie Ratings: Trends by Genre"
+  )
+```
+
+```{r}
+
+# names(movies_quant)
+
+GGally::ggpairs(
+  movies %>% drop_na(),
+  # Select Quant variables only for now
+  columns = c(
+    "RottenTomatoes", "AudienceScore", "DomesticGross", "ForeignGross"
+  ),
+  switch = "both",
+  # axis labels in more traditional locations(left and bottom)
+
+  progress = FALSE,
+  # no compute progress messages needed
+
+  # Choose the diagonal graphs (always single variable! Think!)
+  diag = list(continuous = "barDiag"),
+  # choosing histogram,not density
+
+  # Choose lower triangle graphs, two-variable graphs
+  lower = list(continuous = wrap("smooth", alpha = 0.3, se = FALSE)),
+  title = "Movies Data Correlations Plot #1"
+)
+
+
+# so take one variable at a time to look at - y-axis has foreignGross compared with rottenTomatoes, thus the x-axis is almost negligible (showcased in correlation at the top right corner which is 0.098),the histogram again just showcases the first variable in different format. ps- its always diagonal
+```
+
+```{r}
+
+GGally::ggpairs(
+  movies %>% drop_na(),
+  # Select Quant variables only for now
+  columns = c(
+    "Budget", "Profitability", "DomesticGross", "ForeignGross"
+  ),
+  switch = "both",
+  # axis labels in more traditional locations(left and bottom)
+
+  progress = FALSE,
+  # no compute progress messages needed
+
+  # Choose the diagonal graphs (always single variable! Think!)
+  diag = list(continuous = "barDiag"),
+  # choosing histogram,not density
+
+  # Choose lower triangle graphs, two-variable graphs
+  lower = list(continuous = wrap("smooth", alpha = 0.3, se = FALSE)),
+  title = "Movies Data Correlations Plot #2"
+)
+```
+
+```{r}
+mosaic::cor_test(Profitability ~ Budget, data = movies) %>%
+  broom::tidy() %>%
+  knitr::kable(
+    digits = 2,
+    caption = "Movie Profitability vs Budget"
+  )
+```
+
+```{r}
+mosaic::cor_test(DomesticGross ~ Budget, data = movies) %>%
+  broom::tidy() %>%
+  knitr::kable(
+    digits = 2,
+    caption = "Movie Domestic Gross vs Budget"
+  )
+```
+
+## ERRORBAR CORRELATION
+
+```{r}
+glimpse(mtcars)
+```
+
+```{r}
+## Target variable: mpg
+## Calculate all correlations
+cor <- correlation::correlation(mtcars)
+cor
+```
+
+```{r}
+
+```

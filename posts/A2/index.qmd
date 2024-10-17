@@ -1,0 +1,82 @@
+---
+title: "A2"
+author: "ruchika"
+---
+
+# WOMEN LIVE LONGER? {style="color: blue"}
+
+```{r}
+library(tidyverse)
+library(mosaic)
+library(skimr)
+library(ggformula)
+library(dplyr)
+```
+
+```{r}
+age_dataset <- read_csv("../../data/age-dataset.csv")
+age_dataset
+```
+
+-   Since the data-set hasn't been written properly we have to first specify all the columns clearly such as ; indicates a separate column, this can be done using mutate.
+
+```{r}
+glimpse(age_dataset)
+```
+
+```{r}
+inspect(age_dataset)
+```
+
+```{r}
+age_dataset_modified <- age_dataset %>%
+  separate(col = `Entity;Code;Year;Life expectancy - Sex: female - Age: at birth - Variant: estimates;Life expectancy - Sex: male - Age: at birth - Variant: estimates;Population - Sex: all - Age: all - Variant: estimates;Continent`, 
+           into = c("Entity", "Code", "Year", "LifeExp-F", "LifeExp-M", "Population", "Continent"), 
+           sep = ";")
+  
+# Preview the modified dataset
+glimpse(age_dataset_modified)
+
+```
+
+```{r}
+glimpse(age_dataset_modified)
+```
+
+```{r}
+inspect(age_dataset_modified)
+```
+
+```{r}
+skim(age_dataset_modified)
+```
+
+```{r}
+colnames(age_dataset)
+```
+
+```{r}
+age_dataset_separated <- age_dataset %>%
+  separate(col = `Entity;Code;Year;Life expectancy - Sex: female - Age: at birth - Variant: estimates;Life expectancy - Sex: male - Age: at birth - Variant: estimates;Population - Sex: all - Age: all - Variant: estimates;Continent`,  # Replace with the actual name
+           into = c("Entity", "Code", "Year", 
+                    "LifeExp_Female", "LifeExp_Male", 
+                    "Population", "Continent"),
+           sep = ";")
+
+age_dataset_2015 <- age_dataset_separated %>%
+  filter(Year == 2015)
+
+glimpse(age_dataset_2015)
+```
+
+```{r}
+inspect(age_dataset_2015)
+```
+
+```{r}
+skim(age_dataset_2015)
+```
+
+```{r}
+age_dataset_2015 <- drop_na(age_dataset_modified)
+```

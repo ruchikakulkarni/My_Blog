@@ -1,0 +1,114 @@
+---
+title: "A2Three"
+author: "ruchika"
+---
+
+## MOVIE PROFITS {style="COLOR:BLUE"}
+
+```{r}
+library(tidyverse)
+library(mosaic)
+library(skimr)
+library(ggformula)
+```
+
+```{r}
+movie_profit_data <- read_delim("../../data/movie_profit.csv")
+delim =";"
+glimpse(movie_profit_data)
+```
+
+```{r}
+inspect(movie_profit_data)
+```
+
+```{r}
+skim(movie_profit_data)
+```
+
+#### DATA DICTIONARY
+
+-   There are 10 variables altogether -
+
+-   release-date - is a quant variable since all the movies have different dates.
+
+-   movie - its a qual variable
+
+-   distributor - again is a qual variable
+
+-   mpaa_rating - is a qual variable
+
+-   genre - is a qual variable since it can be grouped
+
+-   production_budget - is a quant varible since it shows the budget of the movie
+
+-   domestic_gross - is a quant variable.
+
+-   worldwide_gross -is a quant variable.
+
+-   profit_ratio -is a quant variable.
+
+-   decade -is a quant variable.
+
+    #### HYPOTHESIS
+
+    -   Higher production budgets are positively correlated with higher revenues.
+
+    -   Movies categorized as Action or Adventure genres have significantly higher worldwide gross earnings compared to other genres like Drama or Romance as they connect to larger audience.
+
+    -   Animated movies will have a higher profit ratio compared to live-action movies.
+
+    -   There is no significant difference in average domestic gross earnings between films distributed by major studios and those distributed by independent/smaller studios.
+
+    <!-- -->
+
+    -   Below, will be mutating some variables to convert into factor
+
+```{r}
+movie_modified <- movie_profit_data %>% 
+  mutate(
+    distributor = as.factor(distributor),
+    mpaa_rating = as.factor(mpaa_rating),
+    genre = as.factor(genre),
+    decade = as.factor(decade)
+  )
+
+glimpse(movie_modified)
+print(movie_modified)
+```
+
+```{r}
+movie_modified %>%
+  group_by(distributor, genre) %>%                 
+  
+  summarise(median_profit_ratio = median(profit_ratio, na.rm = TRUE)) %>%  
+  ggplot(aes(x = genre, y = median_profit_ratio)) +  
+  geom_bar(stat = "identity", fill = "darkgray") +   
+  facet_wrap(~ distributor) +                        
+  coord_flip() +                                     
+  labs(
+    title = "Profits made by Film Distributors",
+    subtitle = "Ratio of Profits to Budgets",
+    x = "Genre", 
+    y = "Median Profit Ratio",
+    caption = "Tidy Tuesday Oct 23, 2018"
+  ) 
+```
+
+#### QUESTIONS
+
+-   How does the genre of a movie influence its profits?
+
+-   Is there a significant difference in profit ratios among movies with different MPAA ratings?
+
+-   Do movies released by major distributors perform better in terms of domestic gross compared to independent distributors even if its the same genre?
+
+#### INFERENCES
+
+-   20Tth Century Fox shows a relatively balanced profit ratio across genres, with action and adventure movies generating slightly higher profits compared to other genres (maybe cause its more renowned).
+
+-   Other distributors also show a more balanced distribution, though none of the genres seem to dominate the profits significantly.
+
+-   Across most distributors, action & adventure films tend to dominate in terms of profit ratio.
+
+-   Horror & drama movies consistently show lower profits compared to other genres.

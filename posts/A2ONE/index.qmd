@@ -1,0 +1,161 @@
+---
+title: "A2one"
+author: "ruchika"
+---
+
+## WOMEN LIVE LONGER? {style="COLOR: BLUE"}
+
+```{r}
+#| label: setup
+
+library(tidyverse)
+library(mosaic)
+library(skimr)
+library(ggformula)
+```
+
+-   The current dataset only has 1 column since the character ";" is used to differentiate among variables, we need to use the delimiter to specify them into separate columns.
+
+```{r}
+age_dataset <- read_delim("../../data/age-dataset.csv")
+delim =";"
+glimpse(age_dataset)
+view(age_dataset)
+```
+
+-   Moving on, as the case study shows that only the dataset of the year 2015 has been taken into consideration, we have to use "filter" function to obtain only 2015 datasets. (The current set includes data from 1950's to 2021)
+
+    ```{r}
+    age_dataset <- age_dataset %>%
+      filter(Year == 2015)
+    age_dataset <- drop_na(age_dataset_modified)
+
+    glimpse(age_dataset)
+    ```
+
+-   Furthermore, since some the variables are NA, we have to remove them using drop_na.
+
+-   Here if we take an example - Akrotiri and Dhekelia the British overseas territories, no data has been provided thus we ought to remove them from the set.
+
+    ```{r}
+    colnames(age_dataset)
+
+    ```
+
+    ```{r}
+    age_dataset_modified <- age_dataset %>%
+      mutate(
+      #LifeExp_F = `Life expectancy - Sex: female - Age: at birth - Variant: estimates` / 10,  
+        #LifeExp_M = `Life expectancy - Sex: male - Age: at birth - Variant: estimates` / 10,     
+        # A tiny messup occcured here so sorry, basically earlier I renamed the life expectancy into LifeExp_F and went to do the graph then realised population's name is also pretty big so came back to change the name, then code stopped working saying Life Expectancy doesn't exist so I checked the colnames but it showed the renamed names (LifeExp) so then in mutate I used the new names and divided by 10 but then it showed those names doesn't exist so I removed both and now the dataset shows correct name with correct numericals.
+        # I think the data was stored in modified that's why it's still showing even if I dont write it in code,but still not sure what happened, sorry for the inconvenience.
+        
+        Population = `Population - Sex: all - Age: all - Variant: estimates`,
+        Continent = as.factor(Continent)  
+      ) %>%
+      select(Entity, Code, Year, LifeExp_F, LifeExp_M, Population, Continent)
+
+    glimpse(age_dataset_modified)
+    ```
+
+    #### We have 7 variables -
+
+-   Entity is the name of the country which is a quant variable.
+
+-   Code again is the short-form of the country name this is a quant variable.
+
+-   Year, since it remains constant it is also a quant variable.
+
+-   Life Expectancy of Female and Male both consists of variety of numbers thus is a quant variable.
+
+-   Population again has a wide range of numbers thus a quant variable.
+
+-   Continent, since there are only 7 continents in the world and can be categorized so a qual variable.
+
+### DATA DICTIONARY
+
+```{r}
+data_dictionary <- data.frame(
+  Variable_Name = c("Entity", "Code", "Year", "LifeExp_F", "LifeExp_M", "Population", "Continent"),
+  Data_Type = c("Character", "Character", "Double", "Double", "Double", "Double", "Character"),
+  Description = c("Country Name", "Short Form of the Country", "Year", "Life Expectancy of Females", "Life Expectancy of Males", "Population", "Continent")
+)
+
+print(data_dictionary)
+```
+
+#### TARGET AND PREDICTOR VARIABLES
+
+-   Life Expectancy of people i.e male and female is the target variable since we are primarily focusing on this aspect.
+
+-   Whereas continent, population and gender are the predictor variables since they are used to predict life expectancy.
+
+    #### RESEARCH QUESTIONS / HYPOTHESIS
+
+    -   Female life expectancy is higher than Male life expectancy in countries with larger population
+
+    -   Asian countries have higher life expetancies.
+
+    -   Larger countries populations wise, have smaller life expectancies.
+
+    -   Countries having higher life expectancy for both genders have good socio-economic laws (Finland came to my mind)
+
+    -   A negative co-relation between male and female life expectancies.
+
+    -   Countries with similar population show similar life expectancy
+
+    ```{r}
+    #Basic scatter plot that has male life expectancy on x-axis and female on y-axi.
+    age_dataset_modified %>%
+      gf_point(LifeExp_F ~ LifeExp_M) %>%
+      gf_lm() %>%
+      gf_labs(
+        title = "Scatter Plot",
+        subtitle = "Life Expectancy Across Countries & Years"
+      )
+    ```
+
+```{r}
+# THIS GRAPH IS CHATGPT-ed
+age_dataset_modified %>%
+  gf_point(LifeExp_F ~ LifeExp_M, 
+           size = ~ ifelse(Population == 5.0e+08, 3, 
+                           ifelse(Population == 1.0e+09, 5, 1)),  # Size 3 for 5.0e+08, size 5 for 1.0e+09, size 1 otherwise
+           alpha = 0.6) %>%
+  gf_lm() %>%
+  gf_labs(
+    title = "Scatter Plot",
+    subtitle = "Life Expectancy Across Countries & Years FINAL"
+  )
+```
+
+```{r}
+age_dataset_modified %>%
+  gf_point(LifeExp_F ~ LifeExp_M, 
+           size = ~ Population,  
+           shape = 8, #so the number 21 is for circle but why be circle when you can be a star :>         
+           alpha = 0.4) %>% 
+  gf_lm() %>%
+  gf_labs(
+    title = "Scatter Plot",
+    subtitle = "Life Expectancy Across Countries & Years 2FINAL"
+  )
+```
+
+#### QUESTIONS
+
+-   Do places with higher male life expectancy also have higher female life expectancy?
+
+-   How is population related to life expectancy of both genders?
+
+-   Is the gender gap in life exp the same in other population sized countries?
+
+#### INFERENCES
+
+-   The life expectancy is proportional, i.e in countries where men live longer, women also tend to live longer which is a consistent pattern across the graph.
+
+-   Since all the data points are very close to the line of best fit (more so in your website's graph than mine), it shows that overall that the difference in life expectancy is fairly smaller.
+
+-   Again in this case there are certain outliers that have either larger number or smaller number of life expectancy.
+
+-   The graph also shows that population size does not highly impact the overall expectancy trends.

@@ -1,0 +1,120 @@
+---
+title: "A2TWO"
+author: "ruchika"
+---
+
+## GENDER AT THE WORK PLACE {style="color: blue"}
+
+```{r}
+#| label: setup
+
+library(tidyverse)
+library(mosaic)
+library(skimr)
+library(ggformula)
+```
+
+```{r}
+job_gender_data <- read_delim("../../data/job_gender_data.csv")
+delim =";"
+glimpse(job_gender_data)
+```
+
+-   This dataset contains 12 variables -
+
+-   Year - since it is consistent (2016), it's a quant variable
+
+-   Occupation - since it showcases a range of different fields its, qual variable.
+
+-   major_category - qual
+
+-   minor_category - qual
+
+-   total_workers - quant
+
+-   workers_male - quant
+
+-   workers_female - quant
+
+-   percent_female - quant
+
+-   total_earnings- quant
+
+-   total_earnings_male - quant
+
+-   total_earnings_female - quant
+
+-   wage_percent_of_male - quant
+
+#### HYPOTHESIS- 
+
+-   There is no significant difference in total earnings between male and female workers across all occupations.
+
+-   OR
+
+-   Female workers earn significantly less than male workers across most occupations.
+
+-   Certain major categories of occupations have a significantly higher percentage of female workers compared to others.
+
+#### QUESTIONS -
+
+-   Does the percentage of females have a significant impact on total earnings?
+
+-   Is there a particular threshold of female percentage where the decline in earnings becomes more significant?
+
+-   Does a higher percentage of females correlate with lower total earnings in all industries or sectors?
+
+#### DATA DICTIONARY
+
+```{r}
+data_dictionary <- data.frame(
+  Variable_Name = c("year"),
+  Data_Type = c(""),
+  Description = c("Country Name")
+)
+
+print(data_dictionary)
+```
+
+```{r}
+#df <- df %>%
+  #mutate(percent_male = 100 - percent_female)
+# Used chatgpt to see if I can change the percentage of male workers, code didnt work
+```
+
+```{r}
+job_gender_data %>%
+  gf_point(total_earnings ~ percent_female) %>%
+  gf_lm() %>%
+  gf_labs(
+    title = "Scatter Plot",
+    subtitle = "Life Expectancy Across Countries & Years"
+  )
+```
+
+```{r}
+job_gender_data %>%
+  gf_point(total_earnings ~ percent_female, 
+           size = ~ total_workers,  
+           shape = 21, 
+           fill = "blue",
+           alpha = 0.8) %>% 
+  gf_lm() %>%
+  gf_labs(
+    title = "Salaries and Gender Proportion in the Workforce",
+    subtitle = "Total Earnings vs Percentage of Female Workers"
+  )
+
+```
+
+```{r}
+colnames(job_gender_data)
+```
+
+#### INFERENCES
+
+-   As the percentage of females increases, the total earnings tends to decrease,thus showing a negative corelation.
+
+-   There is a wide range of earnings for different data points, indicating variability across the observations.,some data points have significantly higher earnings, but these are less frequent.
+
+-   Again, here there are some outliers earning very high or very low..

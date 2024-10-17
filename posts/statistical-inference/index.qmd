@@ -1,0 +1,48 @@
+---
+title: "statistics"
+author: "ruchika"
+---
+
+```{r}
+#| label: setup
+
+library(tidyverse)
+library(mosaic)
+library(ggformula)
+library(infer)
+library(broom) # Clean test results in tibble form
+library(resampledata) # Datasets from Chihara and Hesterberg's book
+library(openintro) # More datasets
+```
+
+-   Tibble - A data frame that is easier to read.
+
+-   rnorm - random but normally distributed data.
+
+```{r}
+set.seed(40)  # for replication
+# Data as individual vectors ( for t.tests etc)
+y <- rnorm(50, mean = 2, sd = 2)
+
+# And as tibble too
+mydata <- tibble(y = y)
+mydata
+```
+
+```{r}
+mydata %>%
+    gf_density(~y) %>%
+    gf_fitdistr(dist = "dnorm") %>%
+    gf_labs(title = "Densities of Original Data Variables", subtitle = "Compared with Normal Density")
+```
+
+```{r}
+# t-test
+t1 <- mosaic::t_test(
+          y, # Name of variable
+          mu = 0, # belief of population mean
+          alternative = "two.sided") %>% # Check both sides
+  
+  broom::tidy() # Make results presentable, and plottable!!
+t1
+```
