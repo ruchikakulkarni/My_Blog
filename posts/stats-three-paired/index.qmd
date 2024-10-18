@@ -1,0 +1,112 @@
+---
+title: "statsthreepaired"
+author: "ruchika"
+---
+
+## INFERENCES THREE PAIRED MEANS 
+
+```{r}
+library(tidyverse) # Tidy data processing
+library(ggformula) # Formula based plots
+library(mosaic) # Data inspection and Statistical Inference
+library(broom) # Tidy outputs from Statistical Analyses
+library(infer) # Statistical Inference, Permutation/Bootstrap
+library(patchwork) # Arranging Plots
+library(ggprism) # Interesting Categorical Axes
+library(supernova) # Beginner-Friendly ANOVA Tables
+```
+
+```{r}
+frogs_orig <- read_csv("../../data/frogs.csv")
+frogs_orig
+```
+
+```{r}
+#regex is a language
+#regex stands for regular expression (allows to separate character strings into words/digits) 
+#\\d+ is the regex here
+#pivot_longer just makes the data readable
+#separate_wider_regex - taking the data and cleaning it up of the column temp into 13, 18 & 25
+
+frogs_orig %>%
+  pivot_longer(
+    .,
+    cols = starts_with("Temperature"),
+    cols_vary = "fastest",
+    # new in pivot_longer
+    names_to = "Temp",
+    values_to = "Time"
+  ) %>%
+  drop_na() %>%
+  ##
+  separate_wider_regex(
+    cols = Temp,
+    # knock off the unnecessary "Temperature" word
+    # Just keep the digits thereafter
+    patterns = c("Temperature", TempFac = "\\d+"),
+    cols_remove = TRUE
+  ) %>%
+  # Convert Temp into TempFac, a 3-level factor
+  mutate(TempFac = factor(
+    x = TempFac,
+    levels = c(13, 18, 25),
+    labels = c("13", "18", "25")
+  )) %>%
+  rename("Id" = `Frogspawn sample id`) -> frogs_long
+frogs_long
+##
+frogs_long %>% count(TempFac)
+```
+
+```{r}
+#temp and hatching time have a positive correlation
+gf_histogram(~Time,
+  fill = ~TempFac,
+  data = frogs_long, alpha = 0.8
+) %>%
+  gf_vline(xintercept = ~ mean(Time)) %>%
+  gf_labs(
+    title = "Histograms of Hatching Time Distributions vs Temperature",
+    x = "Hatching Time", y = "Count"
+  ) %>%
+  gf_text(7 ~ (mean(Time) + 2),
+    label = "Overall Mean"
+  ) %>%
+  gf_refine(guides(fill = guide_legend(title = "Temperature level (°C)")))
+```
+
+```{r}
+gf_boxplot(
+  data = frogs_long,
+  Time ~ TempFac,
+  fill = ~TempFac,
+  alpha = 0.5
+) %>%
+  gf_vline(xintercept = ~ mean(Time)) %>%
+  gf_labs(
+    title = "Boxplots of Hatching Time Distributions vs Temperature",
+    x = "Temperature", y = "Hatching Time",
+    caption = "Using ggprism"
+  ) %>%
+  gf_refine(
+    scale_x_discrete(guide = "prism_bracket"), #breaks the x-axis into 3 parts
+    guides(fill = guide_legend(title = "Temperature level (°C)"))
+  )
+```
+
+```{r}
+frogs_anova <- aov(Time ~ TempFac, data = frogs_long)
+frogs_anova
+```
+
+```{r}
+#Errorbar plots
+# The black dot is the difference between 2 means i.e 25-13, which is 12 where it is plotted
+# The line towards the right corner is confidence interval
+supernova::pairwise(frogs_anova,
+  correction = "Bonferroni", # Try "Tukey"
+  alpha = 0.05, # 95% CI calculation
+  var_equal = TRUE, # We'll see
+  plot = TRUE
+)
+```

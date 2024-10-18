@@ -26,11 +26,11 @@ view(age_dataset)
 -   Moving on, as the case study shows that only the dataset of the year 2015 has been taken into consideration, we have to use "filter" function to obtain only 2015 datasets. (The current set includes data from 1950's to 2021)
 
     ```{r}
-    age_dataset <- age_dataset %>%
+    age_dataset_modified <- age_dataset %>%
       filter(Year == 2015)
-    age_dataset <- drop_na(age_dataset_modified)
+    age_dataset_modified <- drop_na(age_dataset_modified)
 
-    glimpse(age_dataset)
+    glimpse(age_dataset_modified)
     ```
 
 -   Furthermore, since some the variables are NA, we have to remove them using drop_na.
@@ -38,15 +38,15 @@ view(age_dataset)
 -   Here if we take an example - Akrotiri and Dhekelia the British overseas territories, no data has been provided thus we ought to remove them from the set.
 
     ```{r}
-    colnames(age_dataset)
+    colnames(age_dataset_modified)
 
     ```
 
     ```{r}
-    age_dataset_modified <- age_dataset %>%
+    age_dataset_modified <- age_dataset_modified %>%
       mutate(
-      #LifeExp_F = `Life expectancy - Sex: female - Age: at birth - Variant: estimates` / 10,  
-        #LifeExp_M = `Life expectancy - Sex: male - Age: at birth - Variant: estimates` / 10,     
+      LifeExp_F = `Life expectancy - Sex: female - Age: at birth - Variant: estimates` / 10,  
+      LifeExp_M = `Life expectancy - Sex: male - Age: at birth - Variant: estimates` / 10,     
         # A tiny messup occcured here so sorry, basically earlier I renamed the life expectancy into LifeExp_F and went to do the graph then realised population's name is also pretty big so came back to change the name, then code stopped working saying Life Expectancy doesn't exist so I checked the colnames but it showed the renamed names (LifeExp) so then in mutate I used the new names and divided by 10 but then it showed those names doesn't exist so I removed both and now the dataset shows correct name with correct numericals.
         # I think the data was stored in modified that's why it's still showing even if I dont write it in code,but still not sure what happened, sorry for the inconvenience.
         
@@ -160,4 +160,4 @@ age_dataset_modified %>%
 
 -   The graph also shows that population size does not highly impact the overall expectancy trends.
 
-DONE
+DONEcnb

@@ -1,0 +1,89 @@
+---
+title: "statspairs"
+author: "ruchika"
+---
+
+```{r}
+library(tidyverse)
+library(mosaic)
+library(broom) # Tidy Test data
+library(resampledata3) # Datasets from Chihara and Hesterberg's book
+library(gt) # for tables
+```
+
+```{r}
+data("Diving2017", package = "resampledata3")
+Diving2017
+Diving2017_inspect <- inspect(Diving2017)
+Diving2017_inspect$categorical
+Diving2017_inspect$quantitative
+
+```
+
+```{r}
+#Did this since its easier to plot long form data
+
+Diving2017_long <- Diving2017 %>%
+  pivot_longer(
+    cols = c(Final, Semifinal),
+    names_to = "race",
+    values_to = "scores"
+  )
+Diving2017_long
+```
+
+```{r}
+Diving2017_long %>%
+  gf_density(~scores,
+    fill = ~race,
+    alpha = 0.5,
+    title = "Diving Scores"
+  ) %>%
+  gf_facet_grid(~race) %>%
+  gf_fitdistr(dist = "dnorm")
+#The black line is if it was glossier then it would've been like that
+#Density is a histrogram with very small number of bins.
+```
+
+```{r}
+Diving2017_long %>%
+  gf_col(
+    fct_reorder(Name, scores) ~ scores,
+    fill = ~race,
+    alpha = 0.5,
+    position = "dodge",
+    xlab = "Scores",
+    ylab = "Name",
+    title = "Diving Scores"
+  )
+```
+
+```{r}
+Diving2017_long %>%
+  gf_boxplot(
+    scores ~ race,
+    fill = ~race,
+    alpha = 0.5,
+    xlab = "Race",
+    ylab = "Scores",
+    title = "Diving Scores"
+  )
+```
+
+```{r}
+shapiro.test(Diving2017$Final)
+shapiro.test(Diving2017$Semifinal)
+```
+
+```{r}
+obs_diff_swim <- diffmean(scores ~ race,
+  data = Diving2017_long,
+  only.2 = FALSE #creates pair data
+) # paired data
+
+# Can use this also
+# formula method is better for permutation test!
+# obs_diff_swim <- mean(~ (Final - Semifinal), data = Diving2017)
+
+obs_diff_swim
+```

@@ -46,3 +46,11 @@ t1 <- mosaic::t_test(
   broom::tidy() # Make results presentable, and plottable!!
 t1
 ```
+
+```{r}
+#Standard deviation
+sd_belief_pop <- 0  # Assert our belief
+# Sample Mean
+sd_y <- sd(y)
+sd_y
+```
