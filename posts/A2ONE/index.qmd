@@ -20,7 +20,6 @@ library(ggformula)
 age_dataset <- read_delim("../../data/age-dataset.csv")
 delim =";"
 glimpse(age_dataset)
-view(age_dataset)
 ```
 
 -   Moving on, as the case study shows that only the dataset of the year 2015 has been taken into consideration, we have to use "filter" function to obtain only 2015 datasets. (The current set includes data from 1950's to 2021)

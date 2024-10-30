@@ -1,0 +1,194 @@
+---
+title: "A3-Pocket-Money"
+author: "ruchika"
+---
+
+## TIPS {style="color: blue"}
+
+```{r}
+#| label : setup
+
+library(ggformula)
+library(tidyverse)
+library(mosaic)
+library(crosstable)
+```
+
+### NULL HYPOTHESIS -
+
+-   There's no difference in tipping between non-vegetarians and vegetarians.
+
+### ALTERNATIVE HYPOTHESIS -
+
+-   Non-vegetarians tip more than vegetarians.
+
+```{r}
+tip <- read.csv("../../data/tip.csv")
+glimpse(tip)
+```
+
+```{r}
+tip %>% crosstable(Tip ~ Food.preferance)
+```
+
+### DATA DICTIONARY
+
+```{r}
+data_dictionary <- data.frame(
+  Variable_Name = c("Name", "Gender", "Food.preferance", "Tip"),
+  Data_Type = c("Character", "Character", "Factor", "Integer"),
+  Description = c("Name", "Gender",  "Non-veg OR Veg", "Tips Given")
+)
+
+print(data_dictionary)
+```
+
+-   The variables - name, gender and tip are quant variables.
+
+-   Gender could also be mutated as a qual variable but in this case, we are mainly looking at food.preferance and tips, thus haven't changed gender into factor.
+
+-   Mutating food preference as it is a qual variable, since it only contains 2 things - non-veg & veg.
+
+```{r}
+tip_modified <- tip %>%
+  dplyr::mutate(
+    Food.preferance = as_factor(Food.preferance),
+  )
+
+glimpse(tip_modified)
+```
+
+### TIP v/s FOOD PREFERENCE {style="color:red"}
+
+```{r}
+gf_histogram(~Tip, fill = ~ Food.preferance, data = tip_modified) %>%
+  gf_labs(title = "TIP v/s FOOD PREFERANCE", caption = "ggformula")
+```
+
+### INFERENCES -
+
+-   From the histogram above, we can see that majority of people regardless of if they are veg or non-veg don't tip.
+
+-   For the tips between 25-50, veg tips are slightly more frequent.
+
+-   There are some outliers who tip 100, who tend to be vegetarians. (I think it's just 1-2 people)
+
+-   The overall distribution of the graph is right-skewed with majority being no tips and very few high tips.
+
+    ```{r}
+    tip_modified %>% gf_histogram(~Tip|Food.preferance)
+    ```
+
+```{r}
+tip_modified %>%
+  gf_density(~Tip,
+    fill = ~Gender,
+    alpha = 0.8,
+    title = "DENSITY PLOT"
+  )
+```
+
+### INFERENCES -
+
+-   Here, in the above density plot, we can infer that the data is not normally distributed as it's highly right-skewed.
+
+-   The x-axis shows the tip, the y-axis shows the density and the colour showcases the gender.
+
+### TIP v/s GENDER {style="color:red"}
+
+```{r}
+gf_histogram(~Tip, fill = ~ Gender, data = tip_modified) %>%
+  gf_labs(title = "TIP v/s GENDER", caption = "ggformula")
+```
+
+### INFERENCES -
+
+-   In this histogram, again marjority of people regardless of gender tend not to tip.
+
+-   In between the range of 25-50, it seems that female tip more than male.
+
+-   The tipping range seems equal for male & female between the range 0-25.
+
+-   There are some outliers in this graph as well, who tip 100 who happen to be male. (Again it's probably just 1 or 2 people)
+
+-   Filtering out veg and non-veg before doing the shapiro test to check the distribution of each group individually.
+
+```{r}
+tip_modified_a <- tip_modified %>%  filter(Food.preferance == "Veg")
+glimpse(tip_modified_a)
+```
+
+```{r}
+tip_modified_a <- shapiro.test(tip_modified_a$Tip)
+print(tip_modified_a)
+```
+
+-   In the above test, since the p-value is much less than 0.5 it indicates that the data is not normally distributed.
+
+```{r}
+tip_modified_ab <- tip_modified %>%  filter(Food.preferance == "Non-veg")
+glimpse(tip_modified_ab)
+```
+
+```{r}
+tip_modified_ab <- shapiro.test(tip_modified_ab$Tip)
+print(tip_modified_ab)
+```
+
+-   Again, since the data is smaller than 0.5, the data is not normally distributed.
+
+### T-TEST {style="color:red"}
+
+```{r}
+mosaic::t_test(Tip ~ Food.preferance, data = tip_modified) %>% 
+  broom::tidy()
+```
+
+-   Here, since the confidence interval ranges from -6 to 11, it includes 0, thus meaning that there is no significant difference between the 2 groups.
+-   And also the p-value here is greater than 0.5, thus the null hypothesis is not rejected, which is "There's no difference in tipping between non-veg and veg people".
+
+### PERMUTATION {style="color:red"}
+
+-   Here, we basically shuffle the groups assuming that there is no difference.
+
+```{r}
+tip_modified_p <- 
+  do(4999) * diffmean(data = tip_modified, Tip ~ shuffle(Food.preferance))
+tip_modified_p
+```
+
+-   In the code below, we calculate the difference in means between tips & food preference groups before shuffling in the permutation test. The shuffling is done in the above code.
+
+```{r}
+tip_modified <- diffmean(Tip ~ Food.preferance, data = tip_modified)
+glimpse(tip_modified)
+```
+
+```{r}
+gf_histogram(data = tip_modified_p, ~ diffmean, bins = 25) %>%
+  gf_vline(xintercept = tip_modified, 
+           colour = "red", linewidth = 1,
+           title = "ab", 
+           subtitle = "ba") %>% 
+  gf_labs(x = "Difference in Means")
+###
+gf_ecdf(data = tip_modified_p, ~ diffmean, 
+        linewidth = 1) %>%
+  gf_vline(xintercept = tip_modified, 
+           colour = "red", linewidth = 1,
+           title = "a", 
+           subtitle = "ba") %>% 
+  gf_labs(x = "Difference in Means")
+```
+
+### INFERENCES -
+
+-   In the graph above, since the vline is closer to 0, it indicates that there is no significant difference between tipping and food preference.
+
+```{r}
+1-prop1(~ diffmean <= tip_modified, data =tip_modified_p)
+```
+
+-   Here, 0.675 means that the data was shuffled around 67.5% and yet the results didn't show any significant difference between the two groups, i.e - food preference & tipping.
+
+-   Thus, we can say that tipping and food preference are not related to one another.

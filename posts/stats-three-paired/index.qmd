@@ -3,7 +3,7 @@ title: "statsthreepaired"
 author: "ruchika"
 ---
 
-## INFERENCES THREE PAIRED MEANS 
+## INFERENCES THREE PAIRED MEANS
 
 ```{r}
 library(tidyverse) # Tidy data processing

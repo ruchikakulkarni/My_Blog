@@ -1,0 +1,182 @@
+---
+title: "A3-Pocket-Money"
+author: "ruchika"
+---
+
+## POCKET MONEY {style="color:blue"}
+
+```{r}
+#| label : setup
+
+library(ggformula)
+library(mosaic)
+library(skimr)
+library(tidyverse)
+```
+
+### NULL HYPOTHESIS -
+
+-   There's no difference in money spent between male and female.
+
+### ALTERNATIVE HYPOTHESIS -
+
+-   Guys spend more money than girls.
+
+```{r}
+pocket_money <- read.csv("../../data/pocket_money.csv")
+glimpse(pocket_money)
+```
+
+### DATA DICTIONARY
+
+```{r}
+data_dictionary <- data.frame(
+  Variable_Name = c("Sr.no", "Name", "Gender", "Money_spent"),
+  Data_Type = c("Integer", "Character", "Factor", "Integer"),
+  Description = c("Sr.no", "Name",  "Gender", "Money spent yesterday")
+)
+
+print(data_dictionary)
+```
+
+-   The variables sr.no, name and money spent are quant variables.
+
+-   Gender is a qual variable which is mutated into factor below.
+
+```{r}
+pocket_money_modified <- pocket_money %>%
+  dplyr::mutate(
+    Gender = as_factor(Gender),
+  )
+
+glimpse(pocket_money_modified)
+```
+
+### GENDER v/s MONEY SPENT {style="color:red"}
+
+```{r}
+pocket_money_modified %>%
+  gf_boxplot(
+    Gender ~ Money_spent,
+    xlab = "Money Spent",
+    ylab = "Gender",
+    title = "BOX PLOT"
+  )
+```
+
+### INFERENCES -
+
+-   There is more variety of spending in the male group compared to females.
+
+-   Thus, there is more consistency in female spending meaning it's less variation.
+
+-   The overall money spent regardless of gender is towards the lower amount on the x-axis but with outliers in both cases. ( I think between 0-1250)
+
+-   As said earlier, there are outliers for both the genders, female being more than 10,000 and male being 10,000.
+
+```{r}
+pocket_money_modified %>%
+  gf_boxplot(Gender ~ Money_spent, fill = ~Gender) %>%
+  gf_refine(scale_x_log10()) %>%
+  gf_labs(title = "Gender and Money Spent")
+```
+
+### INFERENCES -
+
+-   The median spending is almost the same for both the genders, with that of female being very slightly higher.
+
+-   Also in the earlier graph inference, I mentioned that I thought both genders mostly spend around the lower values which is true but now that this graph is log scale, I can say that the range is between 0-1000.
+
+```{r}
+pocket_money_modified %>%
+  gf_density(~Money_spent,
+    fill = ~Gender,
+    alpha = 0.8,
+    title = "DENSITY PLOT"
+  )
+```
+
+-   Here, in the above density plot, we can infer that the data is not normally distributed as it's highly right-skewed.
+
+-   Filtering out female and male before doing the shapiro test to check the distribution of each group individually below.
+
+```{r}
+pocket_money_modified_girls <- pocket_money_modified %>%  filter(Gender == "Female")
+glimpse(pocket_money_modified_girls)
+```
+
+```{r}
+pocket_money_modified_girls <- shapiro.test(pocket_money_modified_girls$Money_spent)
+print(pocket_money_modified_girls)
+```
+
+-   In the above test, since the p-value is much less than 0.5 it indicates that the data is not normally distributed.
+
+```{r}
+pocket_money_modified_guys <- pocket_money_modified %>%  filter(Gender == "Male")
+glimpse(pocket_money_modified_guys)
+```
+
+```{r}
+pocket_money_modified_guys <- shapiro.test(pocket_money_modified_guys$Money_spent)
+print(pocket_money_modified_guys)
+```
+
+-   Again here in the above test, since the p-value is much less than 0.5 it indicates that the data is not normally distributed.
+
+## T-TEST {style="color:red"}
+
+```{r}
+mosaic::t_test(Money_spent ~ Gender, data = pocket_money_modified) %>% 
+  broom::tidy()
+```
+
+### INFERENCES -
+
+-   In the above t-test, the p-value is 0.8, which is greater than 0.5, thus we fail to reject the null hypothesis meaning we have to accept it. Thus, this suggests that there is no difference in the money spent yesterday based on gender.
+
+## PERMUTATION {style="color:red"}
+
+-   Here, we basically shuffle the groups assuming that there is no difference.
+
+```{r}
+pocket_money_modified_p <- 
+  do(4999) * diffmean(data = pocket_money_modified, Money_spent ~ shuffle(Gender))
+pocket_money_modified_p
+```
+
+-   In the code below, we calculate the difference in means between money spent& gender groups before shuffling in the permutation test. The shuffling is done in the above code.
+
+```{r}
+pocket_money_modified <- diffmean(Money_spent ~ Gender, data = pocket_money_modified)
+glimpse(pocket_money_modified)
+```
+
+```{r}
+gf_histogram(data = pocket_money_modified_p, ~ diffmean, bins = 25) %>%
+  gf_vline(xintercept = pocket_money_modified, 
+           colour = "red", linewidth = 1,
+           title = "ab", 
+           subtitle = "ba") %>% 
+  gf_labs(x = "Difference in Means")
+###
+gf_ecdf(data = pocket_money_modified_p, ~ diffmean, 
+        linewidth = 1) %>%
+  gf_vline(xintercept = pocket_money_modified, 
+           colour = "red", linewidth = 1,
+           title = "ab", 
+           subtitle = "ba") %>% 
+  gf_labs(x = "Difference in Means")
+```
+
+### INFERENCES -
+
+-   In the graph above, since the vline is closer to 0, it indicates that there is no significant difference between money spent and gender.
+
+    ```{r}
+    1-prop1(~ diffmean <= pocket_money_modified, data =pocket_money_modified_p)
+    ```
+
+-   In the above chunk, 0.5706 means in 57.06% of the resampling/shuffling, the observed difference didn't show any significant difference between the two groups, i.e - money spent & gender.
+
+-   Thus, we can say that money spent and gender are not related to one another.

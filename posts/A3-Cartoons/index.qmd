@@ -1,0 +1,240 @@
+---
+title: "A3-Cartoons"
+author: "ruchika"
+---
+
+## CARTOONS {style="color:blue"}
+
+```{r}
+library(tidyverse) # Tidy data processing
+library(ggformula) # Formula based plots
+library(mosaic) # Data inspection and Statistical Inference
+library(broom) # Tidy outputs from Statistical Analyses
+library(infer) # Statistical Inference, Permutation/Bootstrap
+library(patchwork) # Arranging Plots
+library(ggprism) # Interesting Categorical Axes
+library(supernova) # Beginner-Friendly ANOVA Tables
+```
+
+```{r}
+cartoons_data <- read.csv("../../data/cartoons_data.csv")
+glimpse(cartoons_data)
+```
+
+### DATA DICTIONARY
+
+```{r}
+data_dictionary <- data.frame(
+  Variable_Name = c("Participant ID", "Gender", "Cartoon", "Rating"),
+  Data_Type = c("Character", "Factor", "Factor", "Double"),
+  Description = c("Participant id", "Gender",  "Cartoon Names", "Ratings Given")
+)
+
+print(data_dictionary)
+```
+
+-   Participant ID & rating are quant variables.
+
+-   Gender & Cartoon names are mutated into factors below since they are qual variables.
+
+```{r}
+cartoons_data_modified <- cartoons_data %>%
+  dplyr::mutate(
+    Gender = as_factor(Gender),
+    Cartoon = as_factor(Cartoon)
+  )
+
+glimpse(cartoons_data_modified)
+```
+
+### RATING v/s CARTOONS {style="color:red"}
+
+```{r}
+gf_histogram(~Rating,
+  fill = ~Cartoon,
+  data = cartoons_data_modified, alpha = 0.8
+) %>%
+  gf_vline(xintercept = ~ mean(Rating)) %>%
+  gf_labs(
+    title = "Histograms of Rating vs Cartoons",
+    x = "Ratings", y = "Count"
+  ) %>%
+  gf_text(7 ~ (mean(Rating) + 2),
+    label = "Overall Mean"
+  ) %>%
+  gf_refine(guides(fill = guide_legend(title = "Cartoon Names")))
+```
+
+```{r}
+cartoons_data_modified %>% gf_histogram(~Rating|Cartoon)
+```
+
+### INFERENCES -
+
+-   Chota Bheem has it's highest ratings between the range of 5-7.5.
+
+-   Doraemon has a more balanced variety of ratings compared to the other two,thus, the ratings are consistently good, with it's highest ratings between the range of 5.0 - 10.
+
+-   Dragon Tales also has it's highest ratings between the range of 7.5 - 10.
+
+```{r}
+gf_boxplot(
+  data = cartoons_data_modified,
+  Rating ~ Cartoon,
+  fill = ~Cartoon,
+  alpha = 0.8
+) %>%
+  gf_vline(xintercept = ~ mean(Rating)) %>%
+  gf_labs(
+    title = "Boxplots of Cartoon v/s Ratings",
+    x = "Cartoon", y = "Rating",
+    caption = "Using ggprism"
+  ) %>%
+  gf_refine(
+    scale_x_discrete(guide = "prism_bracket"),
+    guides(fill = guide_legend(title = "Cartoon Names"))
+  )
+```
+
+### INFERENCES -
+
+-   Doraemon has the highest and comparatively consistent high rating, however there is one outlier.
+
+-   Dragon Tales also has a good rating but lower than doraemon, even here there is one outlier.
+
+-   Chota Bheem has ratings that is the least consistent.
+
+### ANOVA {style="color:red"}
+
+```{r}
+cartoon_data_anova <- aov(Rating ~ Cartoon, data = cartoons_data_modified)
+```
+
+#### So initially I thought what anova does is compare means of the 3 groups like this - if the groups are a,b & c then it does ab,bc,ac. But then I understood that ANOVA compares the overall variance to tell if atleast the mean of one group is different. {style="color: lightgreen"}
+
+```{r}
+supernova::pairwise(cartoon_data_anova,
+  correction = "Bonferroni", # Try "Tukey"
+  alpha = 0.05, # 95% CI calculation
+  var_equal = TRUE, 
+  plot = TRUE
+)
+```
+
+### INFERENCES -
+
+-   In comparing the group Doraemon & Chota Bheema, the confidence interval doesn't include 0, thus indicating that there is a significant difference between the two. Based off of the previous graphs, I think Doraemon has the higher rating.
+
+-   While comparing the group of Dragon Tales & Chota Bheem, again the CI doesn't include 0 which indicates that there is a significant difference between the two. Again based on my understanding, Dragon Tales has a higher rating.
+
+-   In comparing the last group, Dragon Tales & Doraemon, the CI includes 0, meaning that there is no significant difference in the mean rating between the two.
+
+### SST & SSE {style="color:red"}
+
+-   Calculating sst and sse to understand how much of the variation is differences between groups vs. within groups.
+
+```{r}
+supernova::supernova(cartoon_data_anova)
+```
+
+```{r}
+# Calculate overall sum squares SST
+cartoon_data_overall <- cartoons_data_modified %>%
+  summarise(
+    overall_mean_rating = mean(Rating),
+    # Overall mean across all readings
+    # The Black Line
+
+    SST = sum((Rating - overall_mean_rating)^2),
+    n = n()
+  ) # Always do this with `summarise`
+cartoon_data_overall
+```
+
+-   So the overall mean rating showcases that the average rating of all the 3 cartoons is 7.06.
+
+-   SST means that the ratings for the cartoon vary by 334.8. So higher this value means higher is the inconsistency in rating of cartoons.
+
+-   And n is just the number of ratings in total.
+
+```{r}
+SST <- cartoon_data_overall$SST
+SST
+```
+
+```{r}
+cartoon_within_groups <- cartoons_data_modified %>%
+  group_by(Cartoon) %>%
+  summarise(
+    grouped_mean_rating = mean(Rating), # The Coloured Lines
+    grouped_variance_rating = var(Rating),
+    group_error_squares = sum((Rating - grouped_mean_rating)^2),
+    n = n()
+  )
+cartoon_within_groups
+##
+cartoon_SSE <- cartoon_within_groups %>%
+  summarise(SSE = sum(group_error_squares))
+##
+SSE <- cartoon_SSE$SSE
+SSE
+```
+
+### INFERENCES -
+
+-   So, the table basically shows the average rating and the variance of ratings for every single cartoon.
+
+-   Chota Bheem has an average rating of 6.6 with a variance of 2.2.
+
+-   Doraemon has an average rating of 7.2 with a variance of 5.2.
+
+-   Dragon Tales has an average rating of 7.2 with a variance of 3.7.
+
+-   Here, even though Doraemon & Dragon tales have same avg rating of 7.2, the variance indicates that their ratings might be spread out differently, since doraemon has higher variance it means it's spread out more compared to dragon tales.
+
+#### Again here I was confused about a lot of things in sst and sse, still not sure if I'm doing it correctly or if my inferences are fully correct but from what I understood, on your website there's a full process of ANOVA using f_stat, f_crit which I don't remember doing in class so from my very little understanding, the inferences written above, understanding that it is important to calculate sst and sse as ANOVA considers them to check if the differences in grouped means are significant by comparing the two(sst, sse). {style="color: lightgreen"}
+
+```{r}
+supernova::equation(cartoon_data_anova)
+```
+
+### SHAPIRO TEST {style="color:red"}
+
+```{r}
+shapiro.test(x = cartoons_data_modified$Rating)
+```
+
+-   Since the p-value is less than 0.5 we reject the null hypothesis, meaning that the ratings is not normally distributed.
+
+```{r}
+cartoons_data_modified %>%
+  group_by(Cartoon) %>%
+  group_modify(~ .x %>%
+    select(Rating) %>%
+    as_vector() %>%
+    shapiro.test() %>%
+    broom::tidy())
+```
+
+-   Here, in the above results, Chota bheem has a p-value of 0.18 which is greater than 0.05 meaning we fail to reject the null hypothesis. So we assume it's probably normally distributed.
+
+-   Whereas in the case of doraemon and dragon tales, they have the p-value of 0.013 and 0.018 respectively which is less than 0.05 thus indicating that they are not normally distributed.
+
+```{r}
+cartoon_data_anova$residuals %>%
+  as_tibble() %>%
+  gf_dhistogram(~value, data = .) %>%
+  gf_fitdistr()
+##
+frogs_anova$residuals %>%
+  as_tibble() %>%
+  gf_qq(~value, data = .) %>%
+  gf_qqstep() %>%
+  gf_qqline()
+##
+shapiro.test(cartoon_data_anova$residuals)
+```
+
+### INFERENCES -
+
+-   The curve suggests a roughly symmetric distribution but it's not a perfect bell curve, so it's with some deviations from a perfect normal shape, such as gaps and peaks in the histogram. Thus, maybe the data is not perfectly normally distributed.

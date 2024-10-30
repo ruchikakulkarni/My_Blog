@@ -1,0 +1,216 @@
+---
+title: "A3-UG's"
+author: "ruchika"
+---
+
+## ART, DESIGN AND VOCATION ARE ALL DIFFERENT {style="color:blue"}
+
+```{r}
+#| label : setup
+
+library(tidyverse) # Tidy data processing
+library(ggformula) # Formula based plots
+library(mosaic) # Data inspection and Statistical Inference
+library(broom) # Tidy outputs from Statistical Analyses
+library(infer) # Statistical Inference, Permutation/Bootstrap
+library(patchwork) # Arranging Plots
+library(ggprism) # Interesting Categorical Axes
+library(supernova) # Beginner-Friendly ANOVA Tables
+```
+
+```{r}
+ug_data <- read.csv("../../data/ug_data.csv")
+glimpse(ug_data)
+```
+
+### DATA DICTIONARY
+
+```{r}
+data_dictionary <- data.frame(
+  Variable_Name = c("SN", "Degree", "Course", "Year", "Letter.Grade", "Score", "Gender"),
+  Data_Type = c("Integer", "Factor", "Factor", "Factor","Character", "Double", "Character" ),
+  Description = c("Sr.no", "Program name",  "Course name", "Year", "Grade letter","Grade point", "Gender")
+)
+
+print(data_dictionary)
+```
+
+```{r}
+ug_data_modified <- ug_data %>%
+  dplyr::mutate(
+    Degree = as_factor(Degree),
+    Year = as_factor(Year),
+    Course =as_factor(Course),
+    Grade = as_factor(Letter.Grade),
+    Gender = as_factor(Gender)
+  )
+
+glimpse(ug_data_modified)
+```
+
+-   In this dataset the variables sr no., letter grade and score are quant variables
+
+-   Whereas the variables degree,course, year, gender and grade are qual variables.
+
+    #### Initially, I was a bit confused if I should mutate course into factor since there is no point in creating multiple groups, and since there are around 16-18 courses I was unsure. {style="color:lightgreen"}
+
+### SCORE v/s DEGREE {style="color:red"}
+
+```{r}
+gf_histogram(~Score,
+  fill = ~Degree,
+  data = ug_data_modified, alpha = 0.5
+) %>%
+  gf_vline(xintercept = ~ mean(Score)) %>%
+  gf_labs(
+    title = "Histograms of Rating vs Cartoons",
+    x = "Score", y = "Count"
+  ) %>%
+  gf_text(7 ~ (mean(Score) + 2),
+    label = "Overall Mean"
+  ) %>%
+  gf_refine(guides(fill = guide_legend(title = "Cartoon Names")))
+```
+
+```{r}
+gf_histogram(~Score,
+  fill = ~Degree,
+  data = ug_data_modified, alpha = 0.5
+) %>%
+  gf_vline(xintercept = ~ mean(Score)) %>%
+  gf_labs(
+    title = "Histograms of Score by Degree Programs",
+    x = "Score", y = "Count"
+  ) %>%
+  gf_text(7 ~ (mean(Score) + 2),
+    label = "Overall Mean"
+  ) %>%
+  gf_refine(guides(fill = guide_legend(title = "Degree Programs"))) %>%
+  gf_facet_wrap(~ Degree)
+
+```
+
+### INFERENCES -
+
+-   BDes has it's highest ratings in the range between 8-10.
+
+-   BVoc has it's highest ratings in between the range of 7.5 - 10.
+
+-   And BFA has it's highest ratings between the range of 7.5 - 8
+
+```{r}
+gf_boxplot(
+  data = ug_data_modified,
+  Score ~ Degree,
+  fill = ~Degree,
+  alpha = 0.5
+) %>%
+  gf_vline(xintercept = ~ mean(Score)) %>%
+  gf_labs(
+    title = "Boxplots of Hatching Time Distributions vs Temperature",
+    x = "Temperature", y = " Score",
+    caption = "Using ggprism"
+  ) %>%
+  gf_refine(
+    scale_x_discrete(guide = "prism_bracket"),
+    guides(fill = guide_legend(title = "Temperature level (°C)"))
+  )
+```
+
+### INFERENCES -
+
+-   The middle lines in each box show the median score for each program. The medians are similar, but B.FA has a slightly higher median score.
+
+-   B.Voc has a wider range of scores (from about 4 to 10), meaning scores vary more for this group. B.FA has the smallest range, so scores are more consistent there.
+
+-   B.Des and B.Voc each have an outlier.
+
+```{r}
+ug_data_anova <- aov(Score ~ Degree, data = ug_data_modified)
+```
+
+```{r}
+supernova::pairwise(ug_data_anova,
+  correction = "Bonferroni", # Try "Tukey"
+  alpha = 0.05, # 95% CI calculation
+  var_equal = TRUE, # We'll see
+  plot = TRUE
+)
+```
+
+### INFERENCES -
+
+-   Here, in the above error graph, the group BVoc and BDes, the confidence interval doesn't include 0, thus indicating that there is a significant difference between the two. Based off of the previous graphs.
+
+-   Whereas in the group BFA & BDes, the CI doesn't include 0, which indicates that there is a significant difference between the two.
+
+-   Same for the group of BFA & BVoc, the CI doesn't include 0, meaning there is a significant difference between the two.
+
+```{r}
+supernova::supernova(ug_data_anova)
+```
+
+```{r}
+# Calculate overall sum squares SST
+ug_data_overall <- ug_data_modified %>%
+  summarise(
+    overall_mean_score = mean(Score),
+    # Overall mean across all readings
+    # The Black Line
+
+    SST = sum((Score - overall_mean_score)^2),
+    n = n()
+  ) # Always do this with `summarise`
+ug_data_overall
+```
+
+-   So the overall mean score showcases that the average rating of all the 3 degrees is 8.06.
+
+-   SST means that the ratings for the degree vary by 114.58. So higher this value means higher is the inconsistency in rating of cartoons.
+
+-   And n is just the number of ratings in total.
+
+    #### Honestly wasn't really sure at this point why I was doing sst and sse so just went ahead with shapiro test. {style="color:lightgreen"}
+
+```{r}
+shapiro.test(x = ug_data_modified$Score)
+```
+
+-   Since the p-value is less than 0.5 we reject the null hypothesis, meaning that the scores is not normally distributed.
+
+```{r}
+ug_data_modified %>%
+  group_by(Degree) %>%
+  group_modify(~ .x %>%
+    select(Score) %>%
+    as_vector() %>%
+    shapiro.test() %>%
+    broom::tidy())
+```
+
+-   In the case of Bdes , it has the p-value of 0.005 which is less than 0.05 thus indicating that they are not normally distributed.
+
+-   Similarly, in the case of BVoc , it has the p-value is still less than 0.05 thus indicating that they are not normally distributed but less deviated than bdes.
+
+-   Like BVoc, BFA’s scores significantly deviate from normality, as shown by the low p-value.
+
+```{r}
+ug_data_anova$residuals %>%
+  as_tibble() %>%
+  gf_dhistogram(~value, data = .) %>%
+  gf_fitdistr()
+##
+frogs_anova$residuals %>%
+  as_tibble() %>%
+  gf_qq(~value, data = .) %>%
+  gf_qqstep() %>%
+  gf_qqline()
+##
+shapiro.test(ug_data_anova$residuals)
+```
+
+-   The distribution is left skewed, meaning more values are on the higher end.
+
+-   The shape doesn’t match the perfect bell curve, which tells that the data isn't normally distributed.
+
+-   The graph has many gaps, meaning the values aren’t evenly spread, adding to the inconsistency.
